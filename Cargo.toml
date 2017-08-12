@@ -1,0 +1,11 @@
+[package]
+name = "saw_wave"
+version = "0.1.0"
+authors = ["spectralflux <spectralflux@users.noreply.github.com>"]
+
+[dependencies]
+vst2 = { git = "https://github.com/overdrivenpotato/rust-vst2" }
+
+[lib]
+name = "saw_wave"
+crate-type = ["cdylib"]
