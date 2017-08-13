@@ -21,6 +21,7 @@ struct SawWave {
     time: f64,
     note_duration: f64,
     note: Option<u8>,
+    level: f32,
 }
 
 impl SawWave {
@@ -57,6 +58,7 @@ impl Default for SawWave {
             note_duration: 0.0,
             time: 0.0,
             note: None,
+            level: 1.0,
         }
     }
 }
@@ -70,9 +72,46 @@ impl Plugin for SawWave {
             category: Category::Synth,
             inputs: 2,
             outputs: 2,
-            parameters: 0,
+            parameters: 1,
             initial_delay: 0,
             ..Info::default()
+        }
+    }
+
+    fn get_parameter(&self, index: i32) -> f32 {
+        match index {
+            0 => self.level,
+            _ => 0.0,
+        }
+    }
+
+    fn set_parameter(&mut self, index: i32, value: f32) {
+        match index {
+            // We don't want to divide by zero, so we'll clamp the value
+            0 => self.level = value.max(0.01),
+            _ => (),
+        }
+    }
+
+    fn get_parameter_name(&self, index: i32) -> String {
+        match index {
+            0 => "Level".to_string(),
+            _ => "".to_string(),
+        }
+    }
+
+    fn get_parameter_text(&self, index: i32) -> String {
+        match index {
+            // Convert to a percentage
+            0 => format!("{}", self.level * 100.0),
+            _ => "".to_string(),
+        }
+    }
+
+    fn get_parameter_label(&self, index: i32) -> String {
+        match index {
+            0 => "%".to_string(),
+            _ => "".to_string(),
         }
     }
 
@@ -112,7 +151,7 @@ impl Plugin for SawWave {
                     let full_period_time = 1.0 / note_hz;
                     let local_time = t % full_period_time;
 
-                    let signal = (local_time / full_period_time) * 2.0 - 1.0;
+                    let signal = (self.level as f64) * (local_time / full_period_time) * 2.0 - 1.0;
 
                     *output_sample = signal as f32;
 
