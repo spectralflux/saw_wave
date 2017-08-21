@@ -5,16 +5,7 @@ use vst2::plugin::{Category, Plugin, Info, CanDo};
 use vst2::event::Event;
 use vst2::api::Supported;
 
-use std::f64::consts::PI;
-
-/// Convert the midi note into the equivalent frequency.
-///
-/// This function assumes A4 is 440hz.
-fn midi_note_to_hz(note: u8) -> f64 {
-    const A4: f64 = 440.0;
-
-    (A4 / 32.0) * ((note as f64 - 9.0) / 12.0).exp2()
-}
+mod note;
 
 struct SawWave {
     sample_rate: f64,
@@ -48,8 +39,6 @@ impl SawWave {
         }
     }
 }
-
-pub const TAU : f64 = PI * 2.0;
 
 impl Default for SawWave {
     fn default() -> SawWave {
@@ -147,7 +136,7 @@ impl Plugin for SawWave {
                 if let Some(current_note) = self.note {
 
                     // build saw wave
-                    let note_hz =  midi_note_to_hz(current_note);
+                    let note_hz =  note::midi_note_to_hz(current_note);
                     let full_period_time = 1.0 / note_hz;
                     let local_time = t % full_period_time;
 
