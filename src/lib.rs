@@ -3,7 +3,7 @@
 use vst2::buffer::AudioBuffer;
 use vst2::plugin::{Category, Plugin, Info, CanDo};
 use vst2::event::Event;
-use vst2::api::Supported;
+use vst2::api::{Supported, Events};
 
 mod note;
 
@@ -105,12 +105,13 @@ impl Plugin for SawWave {
     }
 
     #[allow(unused_variables)]
-    fn process_events(&mut self, events: Vec<Event>) {
-        for event in events {
+    fn process_events(&mut self, events: &Events) {
+        for &e in events.events_raw() {
+            let event: Event = Event::from(unsafe { *e });
             match event {
-                Event::Midi { data, ..  } => self.process_midi_event(data),
+                Event::Midi(ev) => self.process_midi_event(ev.data),
                 // More events can be handled here.
-                _ => {}
+                _ => ()
             }
         }
     }
@@ -119,17 +120,11 @@ impl Plugin for SawWave {
         self.sample_rate = rate as f64;
     }
 
-    fn process(&mut self, buffer: AudioBuffer<f32>) {
-        let (inputs, outputs) = buffer.split();
-
-        let samples = inputs
-            .first()
-            .map(|channel| channel.len())
-            .unwrap_or(0);
-
+    fn process(&mut self, buffer: &mut AudioBuffer<f32>) {
+        let samples = buffer.samples();
         let per_sample = self.time_per_sample();
 
-        for (input_buffer, output_buffer) in inputs.iter().zip(outputs) {
+        for (input_buffer, output_buffer) in buffer.zip() {
             let mut t = self.time;
 
             for (_, output_sample) in input_buffer.iter().zip(output_buffer) {
@@ -150,7 +145,6 @@ impl Plugin for SawWave {
                 }
             }
         }
-
         self.time += samples as f64 * per_sample;
         self.note_duration += samples as f64 * per_sample;
     }
