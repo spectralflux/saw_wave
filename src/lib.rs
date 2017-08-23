@@ -76,8 +76,8 @@ impl Plugin for SawWave {
 
     fn set_parameter(&mut self, index: i32, value: f32) {
         match index {
-            // We don't want to divide by zero, so we'll clamp the value
-            0 => self.level = value.max(0.01),
+            // level only seems useful at lower levels, so restrict the range a bit
+            0 => self.level = value / 3.0,
             _ => (),
         }
     }
