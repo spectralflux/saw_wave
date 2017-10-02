@@ -6,6 +6,7 @@ use vst2::event::Event;
 use vst2::api::{Supported, Events};
 
 mod note;
+mod waves;
 
 struct SawWave {
     sample_rate: f64,
@@ -131,11 +132,12 @@ impl Plugin for SawWave {
                 if let Some(current_note) = self.note {
 
                     // build saw wave
-                    let note_hz =  note::midi_note_to_hz(current_note);
-                    let full_period_time = 1.0 / note_hz;
-                    let local_time = t % full_period_time;
+                    // let note_hz =  note::midi_note_to_hz(current_note);
+                    // let full_period_time = 1.0 / note_hz;
+                    // let local_time = t % full_period_time;
 
-                    let signal = (self.level as f64) * (local_time / full_period_time) * 2.0 - 1.0;
+                    // let signal = (self.level as f64) * (local_time / full_period_time) * 2.0 - 1.0;
+                    let signal = waves::saw_wave(t, current_note, self.level as f64);
 
                     *output_sample = signal as f32;
 
